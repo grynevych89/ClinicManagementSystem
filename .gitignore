@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+
+# Database (создаётся при первом запуске)
+data/clinic.db
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
