@@ -70,6 +70,12 @@ requirements for a patient's visit — step-free access, an
 interpreter, an accompanying person, extra appointment time — so
 that we can prepare in advance.
 
+**FR-4b.** As a receptionist, I want to edit an existing patient's
+details — name spelling, age, phone, email, address, access
+needs — so that the register stays correct when a patient moves,
+changes number, or a typo is discovered. The patient ID never
+changes.
+
 **FR-5.** As a receptionist, I want to find a patient by part of
 their name or by ID so that I can find them quickly while they are
 at the desk.
@@ -119,9 +125,12 @@ time.
 patient already has a visit with another doctor at that time, so
 that the patient is not booked for two appointments at once.
 
-**FR-16.** As a user, I want every rejection to show the doctor's
-nearest free slots that also suit the patient, so that I can offer
-another time immediately instead of starting the search over.
+**FR-16.** As a user, I want every rejection caused by a scheduling
+conflict — day off, outside working hours, doctor busy, patient
+busy — to show the doctor's nearest free slots that also suit the
+patient, so that I can offer another time immediately instead of
+starting the search over. Rejections for other reasons (time in the
+past, booking limit, change cutoff) do not suggest alternatives.
 
 **FR-17.** As a user, I want to pick one of the suggested slots and
 book the patient directly from that list, so that I do not have to
@@ -182,7 +191,7 @@ past visits with the doctor, date, time and room, so that I do not
 have to call the reception for this information.
 
 **FR-30.** As a patient, I want to choose a specialty and see the
-free slots of doctors with that specialty over the coming days, so
+free slots of doctors with that specialty over the next 14 days, so
 that I can book on my own without taking up staff time.
 
 **FR-31.** As a patient, I want to see only a doctor's free time,
@@ -259,9 +268,11 @@ mode's name is always printed as text in the screen header. If the
 terminal does not support colour, or the `NO_COLOR` environment
 variable is set, output contains no escape sequences.
 
-**NFR-10. Testability.** Conflict checking and free-slot search are
+**NFR-10. Testability.** Rule-heavy logic — conflict checking,
+free-slot search, the diacritics-insensitive name search (BR-10),
+the self-booking limit (BR-14) and the change cutoff (BR-15) — is
 implemented in Python as functions over plain objects, with no SQL
-inside, and are covered by automated tests that do not touch the
+inside, and is covered by automated tests that do not touch the
 database.
 
 ## 5. Data model
@@ -363,8 +374,14 @@ The structure returned when creating or rescheduling an appointment.
 |---|---|---|
 | success | bool | Whether the operation succeeded |
 | appointment | Appointment | The created appointment, or empty |
-| reason | str | Rejection reason: day off, outside hours, doctor busy, patient busy, time in the past |
-| alternatives | list | Nearest free slots (up to 5) |
+| reason | str | Rejection reason: day off, outside hours, doctor busy, patient busy, time in the past, booking limit reached, too close to start time |
+| alternatives | list | Nearest free slots (up to 5); filled only for scheduling conflicts, otherwise empty |
+
+Every rejection path flows through this structure, including the
+self-booking limit (BR-14) and the change cutoff (BR-15).
+`alternatives` is filled only for scheduling conflicts — day off,
+outside hours, doctor busy, patient busy (see FR-16); for all other
+reasons it is empty.
 
 ## 6. Business rules
 
